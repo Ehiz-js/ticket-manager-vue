@@ -1,0 +1,279 @@
+<script setup>
+import { ref } from 'vue'
+
+// Dummy ticket data
+const tickets = ref([
+  {
+    id: 1,
+    title: 'Login Issue',
+    description: 'Cannot login with correct credentials.',
+    status: 'open',
+    createdAt: '2025-10-20T10:30:00Z',
+  },
+  {
+    id: 2,
+    title: 'Bug in Checkout',
+    description: '',
+    status: 'in_progress',
+    createdAt: '2025-10-22T14:45:00Z',
+  },
+  {
+    id: 3,
+    title: 'Feature Request',
+    description: 'Add dark mode support.',
+    status: 'closed',
+    createdAt: '2025-10-25T09:15:00Z',
+  },
+])
+
+const confirmTicket = ref(null)
+const deleteMessage = ref('')
+
+function handleConfirmDelete(ticket) {
+  confirmTicket.value = ticket
+}
+
+function handleCancel() {
+  confirmTicket.value = null
+}
+
+function handleConfirm() {
+  if (confirmTicket.value) {
+    // Remove ticket from dummy data
+    tickets.value = tickets.value.filter((t) => t.id !== confirmTicket.value.id)
+    deleteMessage.value = 'Ticket deleted successfully.'
+    confirmTicket.value = null
+
+    setTimeout(() => {
+      deleteMessage.value = ''
+    }, 3000)
+  }
+}
+
+function onEdit(ticket) {
+  alert(`Editing ticket: ${ticket.title}`)
+}
+</script>
+
+<template>
+  <section class="section">
+    <h2 class="heading">Your Tickets</h2>
+
+    <p v-if="deleteMessage" class="successMessage">{{ deleteMessage }}</p>
+
+    <div class="list">
+      <p v-if="tickets.length === 0" class="emptyMessage">
+        No tickets found. Create one to get started!
+      </p>
+
+      <div v-else v-for="ticket in tickets" :key="ticket.id" class="card">
+        <div :class="['status', ticket.status]">
+          {{ ticket.status.replace('_', ' ') }}
+        </div>
+
+        <h3 class="title">{{ ticket.title }}</h3>
+        <p class="desc">
+          {{ ticket.description || 'No description' }}
+        </p>
+
+        <div class="footer">
+          <span class="date">
+            {{ new Date(ticket.createdAt).toLocaleDateString() }}
+          </span>
+
+          <div class="actions">
+            <button class="editBtn" @click="onEdit(ticket)">Edit</button>
+            <button class="deleteBtn" @click="handleConfirmDelete(ticket)">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="confirmTicket" class="confirmOverlay">
+      <div class="confirmBox">
+        <h3>Are you sure you want to delete this ticket?</h3>
+
+        <div class="confirmActions">
+          <button class="confirmDelete" @click="handleConfirm">Delete</button>
+          <button class="confirmCancel" @click="handleCancel">Back</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</template>
+
+<style scoped>
+.section {
+  padding: 2rem 0;
+  z-index: 40;
+}
+
+.heading {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+}
+
+.status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+/* Status Colors */
+.open {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.in_progress {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.closed {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.desc {
+  font-size: 1.2rem;
+  color: #555;
+  margin-bottom: 0.75rem;
+  min-height: 25%;
+}
+
+.date {
+  font-size: 0.9rem;
+  color: #777;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.editBtn,
+.deleteBtn {
+  padding: 6px 12px;
+  font-size: 1.1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.2s;
+}
+
+.editBtn {
+  background: #3b82f6; /* blue */
+  color: white;
+}
+
+.editBtn:hover {
+  opacity: 0.8;
+}
+
+.deleteBtn {
+  background: #ef4444; /* red */
+  color: white;
+}
+
+.deleteBtn:hover {
+  opacity: 0.8;
+}
+.confirmOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirmBox {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  max-width: 300px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+}
+
+.confirmActions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.confirmDelete {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.confirmCancel {
+  background: #ccc;
+  color: #333;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.successMessage {
+  margin-top: 0.5rem;
+  color: #2ecc71;
+  font-weight: 500;
+  background: rgba(46, 204, 113, 0.1);
+  border: 1px solid rgba(46, 204, 113, 0.4);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  width: fit-content;
+}
+.emptyMessage {
+  text-align: center;
+  color: #777;
+  padding: 1rem;
+  font-style: italic;
+  font-size: 1.2rem;
+}
+</style>
