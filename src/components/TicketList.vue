@@ -1,33 +1,12 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { store } from '@/stores/authStore'
 
-// Dummy ticket data
-const tickets = ref([
-  {
-    id: 1,
-    title: 'Login Issue',
-    description: 'Cannot login with correct credentials.',
-    status: 'open',
-    createdAt: '2025-10-20T10:30:00Z',
-  },
-  {
-    id: 2,
-    title: 'Bug in Checkout',
-    description: '',
-    status: 'in_progress',
-    createdAt: '2025-10-22T14:45:00Z',
-  },
-  {
-    id: 3,
-    title: 'Feature Request',
-    description: 'Add dark mode support.',
-    status: 'closed',
-    createdAt: '2025-10-25T09:15:00Z',
-  },
-])
-
+const emit = defineEmits(['editTicket'])
 const confirmTicket = ref(null)
 const deleteMessage = ref('')
+
+const tickets = computed(() => store.user?.tickets || [])
 
 function handleConfirmDelete(ticket) {
   confirmTicket.value = ticket
@@ -39,8 +18,7 @@ function handleCancel() {
 
 function handleConfirm() {
   if (confirmTicket.value) {
-    // Remove ticket from dummy data
-    tickets.value = tickets.value.filter((t) => t.id !== confirmTicket.value.id)
+    store.deleteTicket(confirmTicket.value)
     deleteMessage.value = 'Ticket deleted successfully.'
     confirmTicket.value = null
 
@@ -51,7 +29,7 @@ function handleConfirm() {
 }
 
 function onEdit(ticket) {
-  alert(`Editing ticket: ${ticket.title}`)
+  emit('editTicket', ticket)
 }
 </script>
 
@@ -66,21 +44,16 @@ function onEdit(ticket) {
         No tickets found. Create one to get started!
       </p>
 
-      <div v-else v-for="ticket in tickets" :key="ticket.id" class="card">
+      <div v-for="ticket in tickets" :key="ticket.id" class="card">
         <div :class="['status', ticket.status]">
           {{ ticket.status.replace('_', ' ') }}
         </div>
 
         <h3 class="title">{{ ticket.title }}</h3>
-        <p class="desc">
-          {{ ticket.description || 'No description' }}
-        </p>
+        <p class="desc">{{ ticket.description || 'No description' }}</p>
 
         <div class="footer">
-          <span class="date">
-            {{ new Date(ticket.createdAt).toLocaleDateString() }}
-          </span>
-
+          <span class="date">{{ new Date(ticket.createdAt).toLocaleDateString() }}</span>
           <div class="actions">
             <button class="editBtn" @click="onEdit(ticket)">Edit</button>
             <button class="deleteBtn" @click="handleConfirmDelete(ticket)">Delete</button>
@@ -89,10 +62,10 @@ function onEdit(ticket) {
       </div>
     </div>
 
+    <!-- Confirm Delete Modal -->
     <div v-if="confirmTicket" class="confirmOverlay">
       <div class="confirmBox">
         <h3>Are you sure you want to delete this ticket?</h3>
-
         <div class="confirmActions">
           <button class="confirmDelete" @click="handleConfirm">Delete</button>
           <button class="confirmCancel" @click="handleCancel">Back</button>

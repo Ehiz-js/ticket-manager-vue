@@ -6,6 +6,7 @@ import LoginView from '@/views/LoginView.vue'
 import PageNotFoundView from '@/views/PageNotFoundView.vue'
 import SignupView from '@/views/SignupView.vue'
 import { createRouter, createWebHistory } from 'vue-router'
+import { store } from '@/stores/authStore'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -51,6 +52,21 @@ const router = createRouter({
       component: PageNotFoundView,
     },
   ],
+})
+
+// Global navigation guard
+router.beforeEach((to, from, next) => {
+  // Protect /app routes
+  if (to.path.startsWith('/app')) {
+    if (!store.isAuthenticated) {
+      // Redirect to login if not authenticated
+      next({ path: '/login', query: { redirect: to.fullPath } })
+    } else {
+      next()
+    }
+  } else {
+    next()
+  }
 })
 
 export default router

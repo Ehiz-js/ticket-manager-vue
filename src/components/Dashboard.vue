@@ -1,11 +1,22 @@
 <script setup>
-import { ref } from 'vue'
+import { computed } from 'vue'
+import { store } from '@/stores/authStore' // import reactive auth store
+import { RouterLink } from 'vue-router'
 
-const user = ref({ name: 'Ehiz' })
-const totalTickets = ref(100)
-const openTickets = ref(40)
-const inProgressTickets = ref(25)
-const resolvedTickets = ref(35)
+// Reactive user data
+const user = computed(() => store.user || { name: 'Guest', tickets: [] })
+
+// Compute ticket stats dynamically
+const totalTickets = computed(() => user.value.tickets?.length || 0)
+const openTickets = computed(
+  () => user.value.tickets?.filter((t) => t.status === 'open').length || 0,
+)
+const inProgressTickets = computed(
+  () => user.value.tickets?.filter((t) => t.status === 'in_progress').length || 0,
+)
+const resolvedTickets = computed(
+  () => user.value.tickets?.filter((t) => t.status === 'closed').length || 0,
+)
 </script>
 
 <template>
@@ -47,32 +58,32 @@ const resolvedTickets = ref(35)
       </div>
 
       <div class="quickActions">
-        <RouterLink to="/app/tickets" class="actionBtn"
-          ><svg
+        <RouterLink to="/app/tickets" class="actionBtn">
+          <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
-            :strokeWidth="2"
+            stroke-width="2"
             stroke="currentColor"
             class="plusIcon"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
           Create Ticket
         </RouterLink>
 
-        <RouterLink to="/app/tickets?view=list" class="actionBtn"
-          ><svg
+        <RouterLink to="/app/tickets?view=list" class="actionBtn">
+          <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
-            :strokeWidth="2"
+            stroke-width="2"
             stroke="currentColor"
             class="ticketIcon"
           >
             <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
+              stroke-linecap="round"
+              stroke-linejoin="round"
               d="M3.75 5.25h16.5v3A2.25 2.25 0 0118 10.5a2.25 2.25 0 010 4.5 2.25 2.25 0 011.5 2.25v3H3.75v-3A2.25 2.25 0 015.25 15a2.25 2.25 0 010-4.5A2.25 2.25 0 013.75 8.25v-3z"
             />
           </svg>

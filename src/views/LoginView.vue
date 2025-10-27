@@ -2,6 +2,7 @@
 import BackButton from '@/components/BackButton.vue'
 import { useRouter } from 'vue-router'
 import { reactive, ref } from 'vue'
+import { store } from '@/stores/authStore' // import our reactive auth store
 
 const router = useRouter()
 
@@ -11,21 +12,21 @@ const formData = reactive({
   password: '',
 })
 
-// Optional message for success or errors
+// Message to show success or error
 const message = ref('')
 
 const handleSubmit = () => {
-  // Example: login logic goes here
-  console.log('Logging in with:', { ...formData })
+  // Call the store login function
+  const result = store.login(formData.email, formData.password)
+  message.value = result
 
-  message.value = 'Login successful! Welcome back!'
-  setTimeout(() => {
-    router.push('/app')
-    message.value = ''
-  }, 2000)
-
-  // Redirect after login
-  // router.push('/app')
+  // If login succeeded, redirect after a short delay
+  if (store.isAuthenticated) {
+    setTimeout(() => {
+      router.push('/app')
+      message.value = ''
+    }, 1500)
+  }
 }
 </script>
 
@@ -47,8 +48,10 @@ const handleSubmit = () => {
             v-model="formData.email"
             required
           />
-          <!-- success/error text -->
-          <span v-if="message" class="success">{{ message }}</span>
+          <!-- Show success/error message -->
+          <span v-if="message" :class="store.isAuthenticated ? 'success' : 'error'">
+            {{ message }}
+          </span>
         </div>
 
         <div class="inputGroup">

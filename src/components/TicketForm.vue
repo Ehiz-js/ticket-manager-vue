@@ -1,7 +1,15 @@
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, watch } from 'vue'
+import { store } from '@/stores/authStore'
+
+const props = defineProps({
+  ticket: Object, // optional ticket for editing
+})
+
+const emit = defineEmits(['submitted'])
 
 const formData = reactive({
+  id: null,
   title: '',
   description: '',
   status: 'open',
@@ -10,17 +18,57 @@ const formData = reactive({
 
 const message = ref('')
 
-function handleSubmit() {
-  // Example: send formData to API or push to tickets array
-  console.log('Submitted ticket:', { ...formData })
+// Prefill form when editing
+watch(
+  () => props.ticket,
+  (newTicket) => {
+    if (newTicket) {
+      formData.id = newTicket.id
+      formData.title = newTicket.title
+      formData.description = newTicket.description
+      formData.status = newTicket.status
+      formData.priority = newTicket.priority
+    } else {
+      // Reset when no ticket
+      formData.id = null
+      formData.title = ''
+      formData.description = ''
+      formData.status = 'open'
+      formData.priority = 'medium'
+    }
+  },
+  { immediate: true },
+)
 
-  message.value = 'Ticket submitted successfully!'
+function handleSubmit() {
+  if (!formData.title) {
+    message.value = 'Title is required.'
+    return
+  }
+
+  if (formData.id) {
+    // Editing
+    store.updateTicket({ ...formData })
+    message.value = 'Ticket updated successfully!'
+  } else {
+    // Creating new
+    const newTicket = {
+      ...formData,
+      id: Date.now(),
+      createdAt: new Date().toISOString(),
+    }
+    store.addTicket(newTicket)
+    message.value = 'Ticket submitted successfully!'
+  }
 
   // Reset form
+  formData.id = null
   formData.title = ''
   formData.description = ''
   formData.status = 'open'
   formData.priority = 'medium'
+
+  emit('submitted') // notify parent editing is done
 
   setTimeout(() => {
     message.value = ''
@@ -30,7 +78,7 @@ function handleSubmit() {
 
 <template>
   <form class="form" @submit.prevent="handleSubmit">
-    <h2>Create New Ticket</h2>
+    <h2>{{ formData.id ? 'Edit Ticket' : 'Create New Ticket' }}</h2>
 
     <label>Title</label>
     <input type="text" v-model="formData.title" required />
@@ -52,9 +100,7 @@ function handleSubmit() {
       <option value="low">Low</option>
     </select>
 
-    <button type="submit">
-      {{ formData.id ? 'Update Ticket' : 'Create Ticket' }}
-    </button>
+    <button type="submit">{{ formData.id ? 'Update Ticket' : 'Create Ticket' }}</button>
 
     <p v-if="message" class="success">{{ message }}</p>
   </form>

@@ -1,7 +1,8 @@
 <script setup>
 import BackButton from '@/components/BackButton.vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { reactive, ref } from 'vue'
+import { store } from '@/stores/authStore' // import the reactive auth store
 
 const router = useRouter()
 
@@ -13,11 +14,11 @@ const formData = reactive({
   confirmPassword: '',
 })
 
-// Optional message for success or errors
+// Message to show success or error
 const message = ref('')
 
 const handleSubmit = () => {
-  // Basic validation example
+  // Basic validation
   if (!formData.name || !formData.email || !formData.password) {
     message.value = 'Please fill in all required fields.'
     return
@@ -28,14 +29,17 @@ const handleSubmit = () => {
     return
   }
 
-  // Example: sign-up logic
-  console.log('Signing up with:', { ...formData })
+  // Call the store signup function
+  const result = store.signup(formData.name, formData.email, formData.password)
+  message.value = result
 
-  message.value = 'Account created successfully!'
-  setTimeout(() => {
-    router.push('/app')
-    message.value = ''
-  }, 2000)
+  // If signup succeeded, redirect after a short delay
+  if (store.isAuthenticated) {
+    setTimeout(() => {
+      router.push('/app')
+      message.value = ''
+    }, 1500)
+  }
 }
 </script>
 
@@ -88,7 +92,10 @@ const handleSubmit = () => {
 
         <button type="submit" class="btnPrimary">Sign Up</button>
 
-        <span v-if="message" class="success">{{ message }}</span>
+        <!-- Show success/error message -->
+        <span v-if="message" :class="store.isAuthenticated ? 'success' : 'error'">
+          {{ message }}
+        </span>
       </form>
 
       <p class="switchAuth">
